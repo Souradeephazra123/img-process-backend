@@ -15,7 +15,7 @@ async function uploadImage(filePath) {
     cloudinary.config({
       cloud_name: "dsgpbsrxt",
       api_key: "124451358676636",
-      api_secret: process.env.CLOUDINARY_API_SECRET, 
+      api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
     // Upload an image
@@ -48,7 +48,10 @@ export async function upload(req, res) {
     }
 
     const dirname = path.resolve();
-    const filePath = `${dirname}/src/uploads/${fileName}`;
+    const filePath =
+      process.env.MODE === "production"
+        ? `${dirname}/uploads/${fileName}`
+        : `${dirname}/src/uploads/${fileName}`;
 
     await file.mv(filePath);
 
