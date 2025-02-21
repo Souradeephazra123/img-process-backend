@@ -47,11 +47,13 @@ export async function upload(req, res) {
       return res.status(400).send("Only csv files are allowed");
     }
 
+    const uploadDir = process.env.UPLOAD_DIR || "uploads";
+    const filePath = path.join(uploadDir, fileName);
     const dirname = path.resolve();
-    const filePath =
-      process.env.MODE === "production"
-        ? `${dirname}/uploads/${fileName}`
-        : `${dirname}/src/uploads/${fileName}`;
+    // const filePath =
+    //   process.env.MODE === "production"
+    //     ? `${dirname}/uploads/${fileName}`
+    //     : `${dirname}/src/uploads/${fileName}`;
 
     await file.mv(filePath);
 
@@ -104,13 +106,15 @@ async function processingImage(filePath, requestId) {
   );
 
   const dirname = path.resolve();
-  fs.mkdirSync(`${dirname}/uploads/images`, { recursive: true });
+  const uploadDIR = process.env.UPLOAD_DIR || "uploads";
+  const imageDir = path.join(uploadDIR, "images");
+  fs.mkdirSync(imageDir, { recursive: true });
   const imageUrlArr = results.slice(1);
   for (let i = 0; i < imageUrlArr.length; i++) {
     if (imageUrlArr[i].length < 3) {
       continue;
     }
-    const rowPath = `${dirname}/uploads/images/img${i}`;
+    const rowPath = path.join(imageDir, `{img${i}`);
     fs.mkdirSync(rowPath, { recursive: true });
 
     const cleanedUrls = imageUrlArr[i].map((url) =>
@@ -135,7 +139,7 @@ async function processingImage(filePath, requestId) {
     if (imageUrlArr[i].length < 3) {
       continue;
     }
-    const rowPath = `${dirname}/uploads/images/img${i}`;
+    const rowPath = path.join(imageDir, `{img${i}`);
     const files = fs.readdirSync(rowPath);
     let res = "";
     for (const file of files) {
@@ -260,19 +264,13 @@ async function compressImage(fileUrl, outputDir) {
 }
 
 function getMaxDimensions(originalWidth, originalHeight, scaleFactor) {
-  // Calculate the original area
+
   let originalArea = originalWidth * originalHeight;
 
-  // Target area after scaling
   let targetArea = originalArea * scaleFactor;
 
-  // Ratio factor (since width:height = 5:3, let width = 5x and height = 3x)
-  let ratioFactor = 5 / 3;
-
-  // Solve for x: (5x * 3x) = targetArea
   let x = Math.sqrt(targetArea / 15);
 
-  // Calculate new width and height
   let newWidth = Math.round(5 * x);
   let newHeight = Math.round(3 * x);
 
